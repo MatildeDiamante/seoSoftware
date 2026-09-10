@@ -6,7 +6,6 @@ import PageRankTable from "./components/PageRankTable";
 import SuggestionsList from "./components/SuggestionsList";
 
 export default function App() {
-  const [startUrl, setStartUrl] = useState("");
   const [projectId, setProjectId] = useState(null);
   const [pages, setPages] = useState([]);
   const [targetUrl, setTargetUrl] = useState("");
