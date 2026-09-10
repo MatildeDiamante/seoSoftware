@@ -129,13 +129,21 @@ export async function runSiteCrawl(startUrl, projectId, maxPages = 500) {
         }
       });
 
-      scrapedPages.push({
+      const outboundLinksDetails = Array.from(outboundLinksMap.values());
+      const outboundUrls = outboundLinksDetails.map((l) => l.targetUrl);
+
+      // Stores data in a temporary memory
+      scrapedPagesMap.set(canonicalUrl || currentUrl, {
         projectId,
-        url: pageUrl,
+        url: canonicalUrl || currentUrl,
         title,
+        h1,
+        metaDescription,
         cleanContent: paragraphs.join("\n\n"),
         paragraphs,
-        outboundLinks: Array.from(internalLinks),
+        outboundLinks: outboundUrls,
+        outboundDetails: outboundLinksDetails,
+        crawledAt: new Date(),
       });
 
       // Add discovered links to the Crawlee queue
@@ -149,8 +157,57 @@ export async function runSiteCrawl(startUrl, projectId, maxPages = 500) {
         },
       });
     },
+
+    failedRequestHandler({ request, error }) {
+      console.error(
+        `[CRAWL ERROR] Impossible scanning ${request.url}:`,
+        error.message,
+      );
+    },
   });
 
+  // Star scanning
   await crawler.run([startUrl]);
-  return scrapedPages;
+  console.log(
+    `[CRAWL COMPLETE] Scanned ${scrapedPagesMap.size} pages for the project ${projectId}`,
+  );
+
+  // Save the scraped pages to the database
+  await savePagesToDatabase(projectId, Array.from(scrapedPagesMap.values()));
+
+  // Rebuild inbound links for the project
+  await rebuildInboundLinks(projectId);
+}
+
+// Rebuilds the inbound links for a given projectId
+export async function rebuildInboundLinks(projectId) {
+  console.log(`[DB] Rebuilding inbound links for project ${projectId}...`);
+
+  // MongoDB aggregated pipeline to get inbound links for each outbound link
+  const aggregateInbound = await Page.aggregate([
+    { $match: { projectId } },
+    { $unwind: "$outboundLinks" },
+    {
+      $group: {
+        _id: "$outboundLinks",
+        inboundUrls: { $addToSet: "$url" },
+      },
+    },
+  ]);
+
+  // Update bulk
+  const bulkOps = aggregateInbound.map((item) => ({
+    updateOne: {
+      filter: { projectId, url: item._id },
+      update: { $set: { inboundLinks: item.inboundUrls } },
+    },
+  }));
+
+  if (bulkOps.length > 0) {
+    await Page.bulkWrite(bulkOps);
+  }
+
+  console.log(
+    `[DB] Inbound links updated successfully for ${bulkOps.length} pages.`,
+  );
 }
