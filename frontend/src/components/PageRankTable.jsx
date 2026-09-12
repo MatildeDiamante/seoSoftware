@@ -16,10 +16,10 @@ export default function PageRankTable({ pages, onSelectTarget }) {
       <h3 className="text-lg font-semibold mb-3">
         Site Topology & PageRank Distribution
       </h3>
-      <div className="rounded-lg overflow-hidden border border-[#dceeeb]">
+      <div className="rounded-lg overflow-hidden">
         <table className="w-full border-collapse">
           <thead>
-            <tr className="bg-[#f3f6f6]">
+            <tr className="bg-yellow-100">
               <th className="border border-zinc-300 p-2 text-left">URL</th>
               <th className="border border-zinc-300 p-2 text-left">Title</th>
               <th className="border border-zinc-300 p-2 text-left">

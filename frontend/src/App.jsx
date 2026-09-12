@@ -4,6 +4,7 @@ import { API_BASE_URL } from "./config";
 import viteLogo from "./assets/vite.svg";
 import CrawlForm from "./components/CrawlForm";
 import PageRankTable from "./components/PageRankTable";
+import AnalyticsSection from "./components/AnalyticsSection";
 import SuggestionsList from "./components/SuggestionsList";
 
 export default function App() {
@@ -117,6 +118,8 @@ export default function App() {
       <CrawlForm onCrawl={handleCrawl} loading={loading} />
 
       <PageRankTable pages={pages} onSelectTarget={handleSelectTarget} />
+
+      <AnalyticsSection pages={pages} />
 
       {/* Generate predictive suggestions */}
       {targetUrl && (
