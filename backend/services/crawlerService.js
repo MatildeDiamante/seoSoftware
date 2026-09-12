@@ -1,7 +1,6 @@
 // Service for crawling websites and extracting structured content and internal links
 import { CheerioCrawler } from "crawlee";
-import URL from "url";
-import Page from "../models/Page";
+import Page from "../models/Page.js";
 
 // Extensions to ignore during crawling
 const IGNORED_EXTENSIONS =
@@ -53,12 +52,17 @@ export async function runSiteCrawl(startUrl, projectId, maxPages = 500) {
   const crawler = new CheerioCrawler({
     maxRequestsPerCrawl: maxPages,
     maxConcurrency: 5,
-    maxRequestPerMinute: 120, // Limit the number of requests per minute to avoid overloading the server
+    maxRequestsPerMinute: 120, // Limit the number of requests per minute to avoid overloading the server
 
-    // Set custom HTTP headers for the crawler
-    extraHttpHeaders: {
-      "User-Agent": "SEOInternalLinkerBot/1.0 (+https://tuosito.com/bot)",
-    },
+    // Set a custom User-Agent header before each request (extraHttpHeaders is not a valid HttpCrawlerOptions field)
+    preNavigationHooks: [
+      async ({ request }) => {
+        request.headers = {
+          ...request.headers,
+          "User-Agent": "SEOInternalLinkerBot/1.0 (+https://tuosito.com/bot)",
+        };
+      },
+    ],
 
     // Handle each crawled page
     async requestHandler({ $, request, enqueueLinks, response }) {
@@ -177,6 +181,22 @@ export async function runSiteCrawl(startUrl, projectId, maxPages = 500) {
 
   // Rebuild inbound links for the project
   await rebuildInboundLinks(projectId);
+}
+
+// Persists the scraped pages via bulk upsert, keyed by projectId + url
+async function savePagesToDatabase(projectId, pagesData) {
+  if (pagesData.length === 0) return;
+
+  const bulkOps = pagesData.map((page) => ({
+    updateOne: {
+      filter: { projectId, url: page.url },
+      update: { $set: page },
+      upsert: true,
+    },
+  }));
+
+  await Page.bulkWrite(bulkOps);
+  console.log(`[DB] Saved/updated ${pagesData.length} pages.`);
 }
 
 // Rebuilds the inbound links for a given projectId

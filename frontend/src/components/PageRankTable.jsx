@@ -1,17 +1,16 @@
 // PageRankTable component for displaying site topology and internal PageRank distribution
+import styles from "./PageRankTable.module.css";
+
+// PageRankTable component for displaying site topology and internal PageRank distribution
 export default function PageRankTable({ pages, onSelectTarget }) {
   if (pages.length === 0) return null;
 
   return (
-    <div style={{ marginBottom: "2rem" }}>
+    <div className={styles.wrapper}>
       <h3>Site Topology & PageRank Distribution</h3>
-      <table
-        border="1"
-        cellPadding="8"
-        style={{ width: "100%", borderCollapse: "collapse" }}
-      >
+      <table border="1" cellPadding="8" className={styles.table}>
         <thead>
-          <tr style={{ background: "#e4e4e7" }}>
+          <tr className={styles.headerRow}>
             <th>URL</th>
             <th>Title</th>
             <th>Outbound Links</th>
@@ -22,11 +21,11 @@ export default function PageRankTable({ pages, onSelectTarget }) {
         <tbody>
           {pages.map((page) => (
             <tr key={page._id}>
-              <td style={{ fontSize: "0.85rem" }}>{page.url}</td>
+              <td className={styles.urlCell}>{page.url}</td>
               <td>{page.title}</td>
               <td>{page.outboundLinks?.length || 0}</td>
               <td>
-                <strong>
+                <strong className={styles.rankValue}>
                   {((page.currentPagerank || 0) * 100).toFixed(4)}%
                 </strong>
               </td>

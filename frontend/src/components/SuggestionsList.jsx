@@ -1,4 +1,7 @@
 // SuggestionsList component for displaying predictive internal linking suggestions from Gemini AI
+import styles from "./SuggestionsList.module.css";
+
+// SuggestionsList component for displaying predictive internal linking suggestions from Gemini AI
 export default function SuggestionsList({ suggestions }) {
   if (suggestions.length === 0) return null;
 
@@ -8,19 +11,14 @@ export default function SuggestionsList({ suggestions }) {
       {suggestions.map((s) => (
         <div
           key={s._id}
-          style={{
-            border: "1px solid #cbd5e1",
-            borderRadius: "8px",
-            padding: "1rem",
-            marginBottom: "1rem",
-          }}
+          className={styles.card}
         >
           <p>
             <strong>Source URL:</strong> {s.sourceUrl}
           </p>
           <p>
             <strong>Estimated PageRank Boost (ΔPR):</strong>{" "}
-            <span style={{ color: "green", fontWeight: "bold" }}>
+            <span className={styles.boost}>
               +{(s.predictedPageRankBoost * 100).toFixed(5)}%
             </span>
           </p>
@@ -28,12 +26,7 @@ export default function SuggestionsList({ suggestions }) {
             <strong>Exact Position / Source Paragraph:</strong>
           </p>
           <blockquote
-            style={{
-              background: "#f8fafc",
-              padding: "0.75rem",
-              borderLeft: "4px solid #3b82f6",
-              fontStyle: "italic",
-            }}
+            className={styles.contextQuote}
           >
             "{s.exactParagraphContext}"
           </blockquote>
@@ -47,7 +40,7 @@ export default function SuggestionsList({ suggestions }) {
               </li>
             ))}
           </ul>
-          <p style={{ fontSize: "0.9rem", color: "#475569" }}>
+          <p className={styles.reasoning}>
             <strong>SEO Reasoning:</strong> {s.reasoning}
           </p>
         </div>

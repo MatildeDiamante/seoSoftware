@@ -1,6 +1,8 @@
 // CrawlForm component for initiating a new site crawl
 import { useState } from "react";
+import styles from "./CrawlForm.module.css";
 
+// CrawlForm component for initiating a new site crawl
 export default function CrawlForm({ onCrawl, loading }) {
   const [startUrl, setStartUrl] = useState("");
 
@@ -10,21 +12,14 @@ export default function CrawlForm({ onCrawl, loading }) {
   };
 
   return (
-    <div
-      style={{
-        background: "#f4f4f5",
-        padding: "1.5rem",
-        borderRadius: "8px",
-        marginBottom: "2rem",
-      }}
-    >
+    <div className={styles.container}>
       <h3>Crawl New Site</h3>
       <input
         type="url"
         placeholder="https://example.com"
         value={startUrl}
         onChange={(e) => setStartUrl(e.target.value)}
-        style={{ width: "70%", padding: "0.5rem", marginRight: "1rem" }}
+        className={styles.urlInput}
       />
       <button onClick={handleSubmit} disabled={loading || !startUrl}>
         {loading ? "Scanning in progress..." : "Start Crawl"}
