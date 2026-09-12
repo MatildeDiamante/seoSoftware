@@ -78,6 +78,9 @@ export async function runSiteCrawl(startUrl, projectId, maxPages = 500) {
       const currentUrl = normalizeUrl(request.url, startUrl);
       if (!currentUrl) return;
 
+      // Captures the page depth during crawl
+      const depth = request.userData?.__crawlee?.crawlDepth ?? 0;
+
       console.log(`[CRAWL] Scanning: ${currentUrl}`);
 
       // Canonical URL management
@@ -152,6 +155,7 @@ export async function runSiteCrawl(startUrl, projectId, maxPages = 500) {
         paragraphs,
         outboundLinks: outboundUrls,
         outboundDetails: outboundLinksDetails,
+        depth,
         crawledAt: new Date(),
       });
 

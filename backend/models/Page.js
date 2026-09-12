@@ -12,6 +12,8 @@ const pageSchema = new mongoose.Schema({
   cleanContent: { type: String },
   paragraphs: [{ type: String }],
   outboundLinks: [{ type: String }], // List of URLs this page points to
+  depth: { type: Number, default: 0 }, // Distance in clicks from the crawl start URL
+  currentPagerank: { type: Number, default: 0 },
   inboundLinks: [{ type: String }], // List of URLs pointing to this page
   currentPagerank: { type: Number, default: 0 },
   simulatedPagerank: { type: Number, default: 0 },
