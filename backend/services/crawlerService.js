@@ -1,5 +1,5 @@
 // Service for crawling websites and extracting structured content and internal links
-import { CheerioCrawler } from "crawlee";
+import { CheerioCrawler, RequestQueue } from "crawlee";
 import Page from "../models/Page.js";
 
 // Extensions to ignore during crawling
@@ -49,7 +49,12 @@ export async function runSiteCrawl(startUrl, projectId, maxPages = 500) {
   const targetDomain = new URL(startUrl).hostname;
   const scrapedPagesMap = new Map();
 
+  // Dedicated queue for crawl:
+  // reusing the default queue would rouse stale "already handled" state for previously crawls
+  const requestQueue = await RequestQueue.open(`crawl-${projectId}`);
+
   const crawler = new CheerioCrawler({
+    requestQueue,
     maxRequestsPerCrawl: maxPages,
     maxConcurrency: 5,
     maxRequestsPerMinute: 120, // Limit the number of requests per minute to avoid overloading the server
@@ -175,6 +180,9 @@ export async function runSiteCrawl(startUrl, projectId, maxPages = 500) {
   console.log(
     `[CRAWL COMPLETE] Scanned ${scrapedPagesMap.size} pages for the project ${projectId}`,
   );
+
+  // Drop the request queue to clean up any remaining state
+  await requestQueue.drop();
 
   // Save the scraped pages to the database
   await savePagesToDatabase(projectId, Array.from(scrapedPagesMap.values()));

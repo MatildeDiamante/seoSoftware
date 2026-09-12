@@ -1,6 +1,7 @@
 // Main App component for the AI Predictive Internal Linking Software
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { API_BASE_URL } from "./config";
+import viteLogo from "./assets/vite.svg";
 import CrawlForm from "./components/CrawlForm";
 import PageRankTable from "./components/PageRankTable";
 import SuggestionsList from "./components/SuggestionsList";
@@ -12,6 +13,19 @@ export default function App() {
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const suggestionsSectionRef = useRef(null);
+
+  // Selects the target page, scrolls the suggestions section into view, and immediately generates suggestions for it
+  const handleSelectTarget = (url) => {
+    setTargetUrl(url);
+    setTimeout(() => {
+      suggestionsSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 0);
+    generateSuggestionsFor(url);
+  };
 
   // POST /api/projects/crawl
   // Starts the crawling process for a new site
@@ -48,9 +62,9 @@ export default function App() {
   };
 
   // POST /api/projects/predictive-suggestions
-  // Generate predictive suggestions
-  const handleGeneratePredictive = async () => {
-    if (!targetUrl || !projectId) return;
+  // Generate predictive suggestions for the given target URL (accepted as a param to avoid stale-state issues)
+  const generateSuggestionsFor = async (url) => {
+    if (!url || !projectId) return;
     setLoading(true);
     setErrorMessage("");
     try {
@@ -59,7 +73,7 @@ export default function App() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ projectId, targetUrl, minDeltaBoost: 0 }),
+          body: JSON.stringify({ projectId, targetUrl: url, minDeltaBoost: 0 }),
         },
       );
       const data = await res.json();
@@ -76,50 +90,51 @@ export default function App() {
     }
   };
 
+  const handleGeneratePredictive = () => generateSuggestionsFor(targetUrl);
+
   return (
-    <div
-      style={{
-        padding: "2rem",
-        fontFamily: "sans-serif",
-        maxWidth: "1200px",
-        margin: "0 auto",
-      }}
-    >
-      <h1>AI Predictive Internal Linking Software</h1>
+    <div className="max-w-300 mx-auto pt-20 font-sans text-center bg-primary relative">
+      <img
+        src={viteLogo}
+        alt="Vite logo"
+        className="absolute top-6 left-0.5 h-10 w-10"
+      />
+      <h1 className="text-6xl font-bold text-[#5d2cd5] mb-3">Firelink</h1>
+      <h2 className="text-6xl font-bold mb-8">
+        Predict your online visibility with AI
+      </h2>
+      <p className="text-lg mb-25">
+        Leverage AI to optimize your internal linking strategy and boost your
+        website's visibility.
+      </p>
 
       {errorMessage && (
-        <div
-          style={{
-            background: "#fee2e2",
-            color: "#991b1b",
-            padding: "0.75rem 1rem",
-            borderRadius: "6px",
-            marginBottom: "1rem",
-          }}
-        >
+        <div className="bg-red-100 text-red-800 px-4 py-3 rounded-md mb-4">
           {errorMessage}
         </div>
       )}
 
       <CrawlForm onCrawl={handleCrawl} loading={loading} />
 
-      <PageRankTable pages={pages} onSelectTarget={setTargetUrl} />
+      <PageRankTable pages={pages} onSelectTarget={handleSelectTarget} />
 
       {/* Generate predictive suggestions */}
       {targetUrl && (
         <div
-          style={{
-            background: "#e0f2fe",
-            padding: "1.5rem",
-            borderRadius: "8px",
-            marginBottom: "2rem",
-          }}
+          ref={suggestionsSectionRef}
+          className="bg-secondary/20 p-6 rounded-lg mb-8"
         >
-          <h3>Generate Suggestions for Target Page</h3>
-          <p>
+          <h3 className="text-lg font-semibold mb-2">
+            Generate Suggestions for Target Page
+          </h3>
+          <p className="mb-3">
             Selected Target Page: <strong>{targetUrl}</strong>
           </p>
-          <button onClick={handleGeneratePredictive} disabled={loading}>
+          <button
+            onClick={handleGeneratePredictive}
+            disabled={loading}
+            className="bg-secondary text-white px-4 py-2 rounded-md disabled:opacity-50"
+          >
             {loading
               ? "Processing Gemini AI..."
               : "Calculate Impact & Suggest Links"}

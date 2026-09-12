@@ -2,7 +2,8 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-const MODEL_NAME = "gemini-2.5-flash";
+// gemini-2.5-flash was retired; Google now requires gemini-3.6-flash for new usage
+const MODEL_NAME = "gemini-3.6-flash";
 
 // Vincolated output schema: reflects the fields that can be saved in LinkSuggestion
 const linkSuggestionResponseSchema = {
